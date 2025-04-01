@@ -1,1 +1,2 @@
-# bootcamp_django_avanzado
+# Bootcamp Django Avanzado
+Material de las clases del Bootcamp de Django Avanzado de Código Facilito.
