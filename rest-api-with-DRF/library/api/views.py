@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 # from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Book
-from .serializers import BookSerializer
+from .models import Book, Review
+from .serializers import BookSerializer, ReviewSerializer
 
 
 # Create your views here.
@@ -87,3 +87,74 @@ class BookDetailView(APIView):
         return Response(
             status=status.HTTP_204_NO_CONTENT,
         )
+
+
+class ReviewListCreateView(APIView):
+    def get(self, request):
+        reviews = Review.objects.all()
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(
+            {"status": "success", "data": serializer.data}, status=status.HTTP_200_OK
+        )
+
+    def post(self, request):
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            review = serializer.save()
+            return Response(
+                {"status": "success", "data": ReviewSerializer(review).data},
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(
+            {"status": "error", "data": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class ReviewDetailView(APIView):
+    def get_object(self, id):
+        try:
+            return Review.objects.get(id=id)
+        except Review.DoesNotExist:
+            return None
+
+    def get(self, request, id):
+        review = self.get_object(id)
+        if not review:
+            return Response(
+                {"status": "error", "data": "Review not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = ReviewSerializer(review)
+        return Response(
+            {"status": "success", "data": serializer.data}, status=status.HTTP_200_OK
+        )
+
+    def put(self, request, id):
+        review = self.get_object(id)
+        if not review:
+            return Response(
+                {"status": "error", "data": "Review not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = ReviewSerializer(review, data=request.data)
+        if serializer.is_valid():
+            review = serializer.save()
+            return Response(
+                {"status": "success", "data": ReviewSerializer(review).data},
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {"status": "error", "data": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def delete(self, request, id):
+        review = self.get_object(id)
+        if not review:
+            return Response(
+                {"status": "error", "data": "Review not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        review.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
