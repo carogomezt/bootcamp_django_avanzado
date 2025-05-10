@@ -1,7 +1,7 @@
-# from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.views import APIView
 
-# from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Book, Review
@@ -9,33 +9,35 @@ from .serializers import BookSerializer, ReviewSerializer
 
 
 # Create your views here.
-class BookListCreateView(APIView):
-    # class BookListCreateView(GenericAPIView):
-    #     pagination_class = PageNumberPagination
-    #     pagination_class.page_size = 1
+# class BookListCreateView(APIView):
+class BookListCreateView(ListCreateAPIView):
+    serializer_class = BookSerializer
+    queryset = Book.objects.all()
+    pagination_class = PageNumberPagination
+    pagination_class.page_size = 2
 
     def get(self, request):
         books = Book.objects.all()
         serializer = BookSerializer(books, many=True)
-        return Response(
-            {"status": "success", "data": serializer.data}, status=status.HTTP_200_OK
-        )
-        # return self.get_paginated_response(
-        #     {"status": "success", "data": self.paginate_queryset(serializer.data)}
+        # return Response(
+        #     {"status": "success", "data": serializer.data}, status=status.HTTP_200_OK
         # )
-
-    def post(self, request):
-        serializer = BookSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"status": "success", "data": serializer.data},
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(
-            {"status": "error", "data": serializer.errors},
-            status=status.HTTP_400_BAD_REQUEST,
+        return self.get_paginated_response(
+            {"status": "success", "data": self.paginate_queryset(serializer.data)}
         )
+
+    # def post(self, request):
+    #     serializer = BookSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(
+    #             {"status": "success", "data": serializer.data},
+    #             status=status.HTTP_201_CREATED,
+    #         )
+    #     return Response(
+    #         {"status": "error", "data": serializer.errors},
+    #         status=status.HTTP_400_BAD_REQUEST,
+    #     )
 
 
 class BookDetailView(APIView):
